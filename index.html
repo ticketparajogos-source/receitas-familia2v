@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caderno de Receitas da Família</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'warm-bg': '#FDFBF7',
+                        'paper': '#FFFFFF',
+                        'sage': '#8DA399',
+                        'terracotta': '#E07A5F',
+                        'charcoal': '#3D405B',
+                        'sand': '#F2CC8F'
+                    },
+                    fontFamily: {
+                        serif: ['"Playfair Display"', 'serif'],
+                        sans: ['"Lato"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #FDFBF7;
+            background-image: radial-gradient(#E07A5F 0.5px, transparent 0.5px), radial-gradient(#E07A5F 0.5px, #FDFBF7 0.5px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            background-attachment: fixed;
+        }
+        
+        .recipe-card {
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        
+        .recipe-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Login Screen */
+        #loginScreen {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, #3D405B 0%, #1a1c2e 100%);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 3rem;
+            border-radius: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .login-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #E07A5F, #d4664a);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            color: white;
+            font-size: 2rem;
+            box-shadow: 0 10px 25px rgba(224, 122, 95, 0.3);
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 1rem;
+            font-size: 1rem;
+            transition: all 0.3s;
+            margin-bottom: 1rem;
+        }
+
+        .login-input:focus {
+            outline: none;
+            border-color: #E07A5F;
+            box-shadow: 0 0 0 3px rgba(224, 122, 95, 0.1);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #E07A5F, #d4664a);
+            color: white;
+            border: none;
+            border-radius: 1rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(224, 122, 95, 0.3);
+        }
+
+        .login-error {
+            color: #dc2626;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        /* Hide content initially */
+        #mainContent {
+            display: none;
+        }
+
+        .action-btn {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .recipe-card:hover .action-btn {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="text-charcoal font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- TELA DE LOGIN -->
+    <div id="loginScreen">
+        <div class="login-container">
+            <div class="login-icon">
+                <i class="fa-solid fa-utensils"></i>
+            </div>
+            <h1 class="font-serif text-2xl font-bold text-charcoal mb-2">Receitas da Família</h1>
+            <p class="text-stone-500 mb-6">Área privada - Apenas para familiares</p>
+            
+            <input type="password" id="passwordInput" class="login-input" placeholder="Digite a senha..." onkeypress="if(event.key==='Enter')checkPassword()">
+            <button onclick="checkPassword()" class="login-btn">
+                <i class="fa-solid fa-lock mr-2"></i> Entrar
+            </button>
+            <p id="loginError" class="login-error">Senha incorreta. Tente novamente.</p>
+            
+            <p class="text-xs text-stone-400 mt-6">
+                💡 Dica: A senha padrão é <strong>familia2024</strong><br>
+                (Você pode mudar no código)
+            </p>
+        </div>
+    </div>
+
+    <!-- CONTEÚDO PRINCIPAL (Protegido) -->
+    <div id="mainContent">
+        <!-- Header -->
+        <header class="bg-white/90 backdrop-blur-md sticky top-0 z-40 border-b border-stone-200 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+                <div class="flex items-center gap-3 cursor-pointer" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+                    <div class="w-10 h-10 bg-terracotta rounded-full flex items-center justify-center text-white text-xl shadow-lg">
+                        <i class="fa-solid fa-utensils"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-serif text-2xl font-bold text-charcoal tracking-tight">Receitas da Família</h1>
+                        <p class="text-xs text-stone-500 uppercase tracking-widest">O sabor da nossa história</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <div class="relative hidden md:block">
+                        <input type="text" id="searchInput" placeholder="Buscar receita..." 
+                            class="pl-10 pr-4 py-2 rounded-full bg-stone-100 border-none focus:ring-2 focus:ring-terracotta focus:bg-white transition-all w-64 text-sm">
+                        <i class="fa-solid fa-search absolute left-3.5 top-3 text-stone-400"></i>
+                    </div>
+                    <button onclick="openAddModal()" class="bg-terracotta hover:bg-red-500 text-white px-5 py-2.5 rounded-full font-medium shadow-md hover:shadow-lg transition-all flex items-center gap-2 transform active:scale-95">
+                        <i class="fa-solid fa-plus"></i>
+                        <span class="hidden sm:inline">Nova Receita</span>
+                    </button>
+                    <button onclick="logout()" class="text-stone-400 hover:text-charcoal transition-colors" title="Sair">
+                        <i class="fa-solid fa-right-from-bracket text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+            
+            <!-- Filters -->
+            <div class="flex flex-wrap gap-3 mb-8 justify-center sm:justify-start" id="categoryFilters">
+                <button class="filter-btn active bg-charcoal text-white px-4 py-1.5 rounded-full text-sm font-medium transition-colors" data-category="all">Todas</button>
+                <button class="filter-btn bg-white text-stone-600 hover:bg-stone-100 px-4 py-1.5 rounded-full text-sm font-medium border border-stone-200 transition-colors" data-category="principal">Prato Principal</button>
+                <button class="filter-btn bg-white text-stone-600 hover:bg-stone-100 px-4 py-1.5 rounded-full text-sm font-medium border border-stone-200 transition-colors" data-category="sobremesa">Sobremesa</button>
+                <button class="filter-btn bg-white text-stone-600 hover:bg-stone-100 px-4 py-1.5 rounded-full text-sm font-medium border border-stone-200 transition-colors" data-category="entrada">Entrada</button>
+                <button class="filter-btn bg-white text-stone-600 hover:bg-stone-100 px-4 py-1.5 rounded-full text-sm font-medium border border-stone-200 transition-colors" data-category="bebida">Bebida</button>
+            </div>
+
+            <!-- Recipe Grid -->
+            <div id="recipeGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <!-- Cards will be injected here via JS -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="hidden flex-col items-center justify-center py-20 text-center">
+                <div class="w-24 h-24 bg-stone-200 rounded-full flex items-center justify-center mb-4 text-stone-400 text-4xl">
+                    <i class="fa-solid fa-cookie-bite"></i>
+                </div>
+                <h3 class="font-serif text-xl font-bold text-charcoal mb-2">Nenhuma receita encontrada</h3>
+                <p class="text-stone-500">Tente ajustar os filtros ou adicione uma nova receita!</p>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-charcoal text-white py-8 mt-auto">
+            <div class="max-w-7xl mx-auto px-4 text-center">
+                <p class="font-serif italic text-lg mb-2">"A mesa é o coração da casa."</p>
+                <p class="text-stone-400 text-sm">&copy; 2023 Caderno de Receitas da Família. Feito com amor.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modais (Add/Edit/View) - mantidos iguais -->
+    <div id="recipeModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-charcoal bg-opacity-75 transition-opacity backdrop-blur-sm" onclick="closeModal()"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-orange-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <i class="fa-solid fa-pen text-terracotta" id="modalIcon"></i>
+                        </div>
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-serif font-bold text-gray-900" id="modal-title">Adicionar Nova Receita</h3>
+                            <div class="mt-4 space-y-4">
+                                <input type="hidden" id="inputId">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Nome da Receita</label>
+                                    <input type="text" id="inputTitle" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-terracotta focus:border-terracotta sm:text-sm" placeholder="Ex: Strogonoff de Frango">
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Categoria</label>
+                                        <select id="inputCategory" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-terracotta focus:border-terracotta sm:text-sm">
+                                            <option value="principal">Prato Principal</option>
+                                            <option value="sobremesa">Sobremesa</option>
+                                            <option value="entrada">Entrada</option>
+                                            <option value="bebida">Bebida</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Tempo (min)</label>
+                                        <input type="number" id="inputTime" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-terracotta focus:border-terracotta sm:text-sm" placeholder="45">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">URL da Imagem</label>
+                                    <input type="text" id="inputImage" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-terracotta focus:border-terracotta sm:text-sm" placeholder="https://...">
+                                    <p class="text-xs text-gray-500 mt-1">Deixe em branco para uma imagem padrão.</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Ingredientes (um por linha)</label>
+                                    <textarea id="inputIngredients" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-terracotta focus:border-terracotta sm:text-sm" placeholder="500g de frango&#10;1 lata de creme de leite..."></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Modo de Preparo</label>
+                                    <textarea id="inputInstructions" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-terracotta focus:border-terracotta sm:text-sm" placeholder="Corte o frango em cubos..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" onclick="saveRecipe()" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-terracotta text-base font-medium text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-terracotta sm:ml-3 sm:w-auto sm:text-sm">
+                        Salvar Receita
+                    </button>
+                    <button type="button" onclick="closeModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="viewModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+            <div class="fixed inset-0 bg-charcoal bg-opacity-80 transition-opacity backdrop-blur-sm" onclick="closeViewModal()"></div>
+            <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl w-full relative">
+                <button onclick="closeViewModal()" class="absolute top-4 right-4 z-10 bg-white/80 hover:bg-white rounded-full p-2 text-charcoal transition-colors">
+                    <i class="fa-solid fa-times text-xl"></i>
+                </button>
+                <div id="viewModalContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== CONFIGURAÇÃO DE SEGURANÇA ==========
+        // MUDE A SENHA AQUI! Use uma senha forte que só sua família saiba
+        const FAMILY_PASSWORD = "familiabom"; 
+        
+        // Verifica se já está logado (session)
+        if (sessionStorage.getItem('familyAuth') === 'true') {
+            showMainContent();
+        }
+
+        function checkPassword() {
+            const input = document.getElementById('passwordInput').value;
+            if (input === FAMILY_PASSWORD) {
+                sessionStorage.setItem('familyAuth', 'true');
+                showMainContent();
+            } else {
+                document.getElementById('loginError').style.display = 'block';
+                document.getElementById('passwordInput').value = '';
+                document.getElementById('passwordInput').focus();
+            }
+        }
+
+        function showMainContent() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+            document.body.style.background = '#FDFBF7'; // Restaura background
+        }
+
+        function logout() {
+            sessionStorage.removeItem('familyAuth');
+            location.reload();
+        }
+
+        // ========== DADOS E LÓGICA DO APP ==========
+        const initialRecipes = [
+            {
+                id: 1,
+                title: "Feijoada Tradicional",
+                category: "principal",
+                time: 120,
+                image: "https://images.unsplash.com/photo-1565895405138-6c3a1555da6a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+                ingredients: ["1kg de feijão preto", "500g de carne seca", "300g de linguiça calabresa", "200g de bacon", "Folhas de louro", "Alho e cebola a gosto"],
+                instructions: "Deixe o feijão de molho por 12 horas. Cozinhe as carnes separadamente. Refogue o alho e cebola, adicione o feijão escorrido e água nova. Cozinhe até ficar macio. Adicione as carnes e deixe apurar."
+            },
+            {
+                id: 2,
+                title: "Pudim de Leite Condensado",
+                category: "sobremesa",
+                time: 60,
+                image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+                ingredients: ["1 lata de leite condensado", "2 medidas (da lata) de leite", "3 ovos inteiros", "1 xícara de açúcar (para a calda)"],
+                instructions: "Bata todos os ingredientes no liquidificador. Derreta o açúcar na forma até caramelizar. Despeje a massa na forma. Asse em banho-maria por 45 minutos. Deixe esfriar e desenforme."
+            },
+            {
+                id: 3,
+                title: "Bruschetta de Tomate",
+                category: "entrada",
+                time: 15,
+                image: "https://images.unsplash.com/photo-1572695157363-bc31c5dd3c1b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+                ingredients: ["Baguete fatiada", "3 tomates maduros picados", "Manjericão fresco", "Azeite de oliva", "Alho", "Sal e pimenta"],
+                instructions: "Toste as fatias de pão. Esfregue alho nelas ainda quentes. Misture o tomate, manjericão, azeite, sal e pimenta. Coloque a mistura sobre o pão e sirva imediatamente."
+            }
+        ];
+
+        let recipes = JSON.parse(localStorage.getItem('familyRecipes')) || [...initialRecipes];
+        let currentFilter = 'all';
+        let editingId = null;
+
+        // Salva no localStorage sempre que mudar
+        function saveToStorage() {
+            localStorage.setItem('familyRecipes', JSON.stringify(recipes));
+        }
+
+        // Renderização e outras funções...
+        function getCategoryLabel(cat) {
+            const map = { 'principal': 'Prato Principal', 'sobremesa': 'Sobremesa', 'entrada': 'Entrada', 'bebida': 'Bebida' };
+            return map[cat] || cat;
+        }
+
+        function getCategoryColor(cat) {
+            const map = { 'principal': 'bg-blue-100 text-blue-800', 'sobremesa': 'bg-pink-100 text-pink-800', 'entrada': 'bg-green-100 text-green-800', 'bebida': 'bg-yellow-100 text-yellow-800' };
+            return map[cat] || 'bg-gray-100 text-gray-800';
+        }
+
+        function renderRecipes() {
+            const grid = document.getElementById('recipeGrid');
+            const emptyState = document.getElementById('emptyState');
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            const filtered = recipes.filter(recipe => {
+                const matchesCategory = currentFilter === 'all' || recipe.category === currentFilter;
+                const matchesSearch = recipe.title.toLowerCase().includes(searchTerm) || recipe.ingredients.some(i => i.toLowerCase().includes(searchTerm));
+                return matchesCategory && matchesSearch;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
+            } else {
+                emptyState.classList.add('hidden');
+                emptyState.classList.remove('flex');
+                grid.innerHTML = filtered.map(recipe => `
+                    <div class="recipe-card bg-white rounded-xl overflow-hidden shadow-md border border-stone-100 flex flex-col h-full group relative">
+                        <div class="relative h-48 overflow-hidden cursor-pointer" onclick="openViewModal(${recipe.id})">
+                            <img src="${recipe.image}" alt="${recipe.title}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                            <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-xs font-bold text-charcoal shadow-sm">
+                                <i class="fa-regular fa-clock mr-1"></i> ${recipe.time} min
+                            </div>
+                            <div class="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-black/60 to-transparent opacity-60"></div>
+                            <div class="absolute top-3 left-3 flex gap-2 action-btn">
+                                <button onclick="event.stopPropagation(); openEditModal(${recipe.id})" class="bg-blue-500 hover:bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110" title="Editar">
+                                    <i class="fa-solid fa-pencil text-xs"></i>
+                                </button>
+                                <button onclick="event.stopPropagation(); deleteRecipe(${recipe.id})" class="bg-red-500 hover:bg-red-600 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110" title="Excluir">
+                                    <i class="fa-solid fa-trash text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-5 flex flex-col flex-grow cursor-pointer" onclick="openViewModal(${recipe.id})">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="text-xs font-bold uppercase tracking-wider ${getCategoryColor(recipe.category)} px-2 py-1 rounded-md">${getCategoryLabel(recipe.category)}</span>
+                            </div>
+                            <h3 class="font-serif text-xl font-bold text-charcoal mb-2 group-hover:text-terracotta transition-colors">${recipe.title}</h3>
+                            <p class="text-stone-500 text-sm line-clamp-2 mb-4 flex-grow">${recipe.ingredients.slice(0, 3).join(', ')}...</p>
+                            <div class="pt-4 border-t border-stone-100 flex justify-between items-center text-sm text-stone-400">
+                                <span>${recipe.ingredients.length} ingredientes</span>
+                                <span class="text-terracotta font-medium group-hover:translate-x-1 transition-transform">Ver receita <i class="fa-solid fa-arrow-right ml-1"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Filtros e busca
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => {
+                    b.classList.remove('bg-charcoal', 'text-white');
+                    b.classList.add('bg-white', 'text-stone-600');
+                });
+                btn.classList.remove('bg-white', 'text-stone-600');
+                btn.classList.add('bg-charcoal', 'text-white');
+                currentFilter = btn.dataset.category;
+                renderRecipes();
+            });
+        });
+
+        document.getElementById('searchInput').addEventListener('input', renderRecipes);
+
+        // Modais
+        function openAddModal() {
+            editingId = null;
+            document.getElementById('modal-title').textContent = 'Adicionar Nova Receita';
+            document.getElementById('inputId').value = '';
+            document.getElementById('inputTitle').value = '';
+            document.getElementById('inputCategory').value = 'principal';
+            document.getElementById('inputTime').value = '';
+            document.getElementById('inputImage').value = '';
+            document.getElementById('inputIngredients').value = '';
+            document.getElementById('inputInstructions').value = '';
+            document.getElementById('recipeModal').classList.remove('hidden');
+        }
+
+        function openEditModal(id) {
+            const recipe = recipes.find(r => r.id === id);
+            if (!recipe) return;
+            editingId = id;
+            document.getElementById('modal-title').textContent = 'Editar Receita';
+            document.getElementById('inputId').value = recipe.id;
+            document.getElementById('inputTitle').value = recipe.title;
+            document.getElementById('inputCategory').value = recipe.category;
+            document.getElementById('inputTime').value = recipe.time;
+            document.getElementById('inputImage').value = recipe.image;
+            document.getElementById('inputIngredients').value = recipe.ingredients.join('\n');
+            document.getElementById('inputInstructions').value = recipe.instructions;
+            document.getElementById('recipeModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('recipeModal').classList.add('hidden');
+            editingId = null;
+        }
+
+        function saveRecipe() {
+            const title = document.getElementById('inputTitle').value;
+            const category = document.getElementById('inputCategory').value;
+            const time = parseInt(document.getElementById('inputTime').value) || 30;
+            let image = document.getElementById('inputImage').value;
+            const ingredientsRaw = document.getElementById('inputIngredients').value;
+            const instructions = document.getElementById('inputInstructions').value;
+
+            if (!title || !ingredientsRaw || !instructions) {
+                alert("Preencha pelo menos o título, ingredientes e modo de preparo.");
+                return;
+            }
+
+            if (!image) {
+                image = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80";
+            }
+
+            const recipeData = {
+                title, category, time, image,
+                ingredients: ingredientsRaw.split('\n').filter(i => i.trim() !== ''),
+                instructions
+            };
+
+            if (editingId) {
+                const index = recipes.findIndex(r => r.id === editingId);
+                if (index !== -1) recipes[index] = { ...recipes[index], ...recipeData };
+            } else {
+                recipes.unshift({ id: Date.now(), ...recipeData });
+            }
+
+            saveToStorage();
+            renderRecipes();
+            closeModal();
+        }
+
+        function deleteRecipe(id) {
+            if (confirm('Tem certeza que deseja excluir esta receita?')) {
+                recipes = recipes.filter(r => r.id !== id);
+                saveToStorage();
+                renderRecipes();
+            }
+        }
+
+        function openViewModal(id) {
+            const recipe = recipes.find(r => r.id === id);
+            if (!recipe) return;
+            document.getElementById('viewModalContent').innerHTML = `
+                <div class="relative h-64 sm:h-80">
+                    <img src="${recipe.image}" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+                    <div class="absolute bottom-0 left-0 p-6 text-white">
+                        <span class="bg-terracotta px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide mb-2 inline-block">${getCategoryLabel(recipe.category)}</span>
+                        <h2 class="text-3xl sm:text-4xl font-serif font-bold shadow-sm">${recipe.title}</h2>
+                    </div>
+                </div>
+                <div class="p-6 sm:p-8 bg-white">
+                    <div class="flex items-center gap-6 mb-8 text-stone-600 border-b border-stone-100 pb-6">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-regular fa-clock text-terracotta text-xl"></i>
+                            <div><p class="text-xs uppercase font-bold text-stone-400">Preparo</p><p class="font-medium">${recipe.time} min</p></div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-list text-terracotta text-xl"></i>
+                            <div><p class="text-xs uppercase font-bold text-stone-400">Ingredientes</p><p class="font-medium">${recipe.ingredients.length} itens</p></div>
+                        </div>
+                    </div>
+                    <div class="grid md:grid-cols-3 gap-8">
+                        <div class="md:col-span-1">
+                            <h3 class="font-serif text-xl font-bold text-charcoal mb-4">Ingredientes</h3>
+                            <ul class="space-y-3">
+                                ${recipe.ingredients.map(ing => `<li class="flex items-start gap-3 text-stone-700"><i class="fa-solid fa-check text-sage mt-1 text-sm"></i><span>${ing}</span></li>`).join('')}
+                            </ul>
+                        </div>
+                        <div class="md:col-span-2">
+                            <h3 class="font-serif text-xl font-bold text-charcoal mb-4">Modo de Preparo</h3>
+                            <div class="prose prose-stone text-stone-600 leading-relaxed whitespace-pre-line">${recipe.instructions}</div>
+                        </div>
+                    </div>
+                    <div class="mt-8 pt-6 border-t border-stone-100 flex justify-end gap-3">
+                        <button onclick="closeViewModal(); openEditModal(${recipe.id})" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"><i class="fa-solid fa-pencil"></i> Editar</button>
+                        <button onclick="closeViewModal(); deleteRecipe(${recipe.id})" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"><i class="fa-solid fa-trash"></i> Excluir</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('viewModal').classList.remove('hidden');
+        }
+
+        function closeViewModal() {
+            document.getElementById('viewModal').classList.add('hidden');
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape") {
+                closeModal();
+                closeViewModal();
+            }
+        });
+
+        // Inicializa
+        document.addEventListener('DOMContentLoaded', () => {
+            if (sessionStorage.getItem('familyAuth') === 'true') {
+                renderRecipes();
+            }
+        });
+    </script>
+</body>
+</html>
